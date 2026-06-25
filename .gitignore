@@ -1,0 +1,8 @@
+node_modules/
+.env
+data/
+tunnel_now.log
+tunnel_err.log
+*.log
+public/generated/*.png
+public/generated/*.jpg

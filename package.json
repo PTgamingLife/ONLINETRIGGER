@@ -1,0 +1,20 @@
+{
+  "name": "line-health-ai",
+  "version": "1.0.0",
+  "description": "LINE 健康圖文 AI 自動發送系統",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@line/bot-sdk": "^11.0.0",
+    "express": "^4.21.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "axios": "^1.7.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
+    "openai": "^4.56.0"
+  }
+}
