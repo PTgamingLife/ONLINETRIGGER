@@ -1,0 +1,32 @@
+name: Daily Health Push
+
+on:
+  schedule:
+    # 08:00 Asia/Taipei = 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force push even if already sent today'
+        required: false
+        default: 'false'
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daily push
+        run: |
+          FORCE="${{ github.event.inputs.force || 'false' }}"
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.RAILWAY_URL }}/admin/daily-push" \
+            -H "x-admin-secret: ${{ secrets.ADMIN_WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"force\": $FORCE}")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "Response: $BODY"
+          echo "HTTP: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: push failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
