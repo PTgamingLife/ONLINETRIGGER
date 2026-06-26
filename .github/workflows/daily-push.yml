@@ -15,18 +15,34 @@ jobs:
   push:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger daily push
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run daily push
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_CHANNEL_SECRET: ${{ secrets.LINE_CHANNEL_SECRET }}
+          LINE_TARGET_CHAT_ID: ${{ secrets.LINE_TARGET_CHAT_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_TEXT_MODEL: gpt-4o-mini
+          OPENAI_IMAGE_MODEL: gpt-image-2
+          OPENAI_IMAGE_QUALITY: medium
+          OPENAI_FULL_INFOGRAPHIC: 'true'
+          REQUIRE_OPENAI_IMAGE: 'true'
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: line-images
+          MOCK_MODE: 'false'
         run: |
-          FORCE="${{ github.event.inputs.force || 'false' }}"
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.RAILWAY_URL }}/admin/daily-push" \
-            -H "x-admin-secret: ${{ secrets.ADMIN_WEBHOOK_SECRET }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"force\": $FORCE}")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -1)
-          echo "Response: $BODY"
-          echo "HTTP: $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "ERROR: push failed with HTTP $HTTP_CODE"
-            exit 1
+          ARGS=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            ARGS="--force"
           fi
+          node scripts/daily-push.js $ARGS
